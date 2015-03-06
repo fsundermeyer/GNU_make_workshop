@@ -11,15 +11,15 @@
 vpath %.flac flac
 
 FLAC_FILE := song.flac
-MP3_FILE  := mp3/song.mp3
 COVER     := mp3/cover.jpeg
 
-rgain     := mp3/.replaygain
+mp3_file   := mp3/song.mp3
+replaygain := mp3/.replaygain
 
 .PHONY: all
-all: $(MP3_FILE) $(COVER) $(rgain)
+all: $(mp3_file) $(COVER) $(replaygain)
 
-$(MP3_FILE): $(FLAC_FILE) | mp3
+$(mp3_file): $(FLAC_FILE) | mp3
 	flac -s -d --stdout "$<" | lame --quiet \
 	  --ta "Nine Inch Nails" \
 	  --tl "The Slip" \
@@ -30,16 +30,16 @@ $(MP3_FILE): $(FLAC_FILE) | mp3
 	  --tg "Alternative" \
 	  - "$@"
 
-$(COVER): | mp3
+$(COVER): $(mp3_file) | mp3
 	glyrc cover \
 	  --artist "Nine Inch Nails" \
 	  --album "The Slip" \
 	  --write "mp3/cover.:format:" \
 	  --formats "jpeg" 2>/dev/null
 
-$(rgain): $(MP3_FILE)
-	mp3gain -r -c mp3/*.mp3
-	touch mp3/.replaygain
+$(replaygain): $(mp3_file)
+	mp3gain -r -c $<
+	touch $@
 
 mp3:
-	mkdir mp3
+	mkdir $@

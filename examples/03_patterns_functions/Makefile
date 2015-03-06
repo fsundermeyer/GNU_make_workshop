@@ -3,31 +3,37 @@
 # Frank Sundermeyer 03.03.2015
 #
 # Example 03:
-# Simple conversion of a flac file to mp3
+# Conversion of all flac files in a directory to mp3
 # with functions and patterns
 #
 
-# VPATH = flac
+#-------------------------------------
+
+FLAC_DIR   := flac
+MP3_DIR    := mp3
+COVER_NAME := cover
+
+flac_files := $(wildcard $(FLAC_DIR)/*.flac)
+mp3_files  := $(patsubst flac/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
+cover_file := mp3/$(COVER_NAME).jpeg
+replaygain := mp3/.replaygain
+
+album_artist := $(shell metaflac --show-tag=ARTIST \
+                  "$(firstword $(flac_files))" |sed 's/.*=//g')
+album_title  := $(shell metaflac --show-tag=ALBUM \
+                  "$(firstword $(flac_files))" |sed 's/.*=//g')
+
+#-------------------------------------
+
 vpath %.flac flac
 
-FLAC_FILES := $(wildcard flac/*.flac)
-MP3_FILES  := $(patsubst flac/%.flac,mp3/%.mp3,$(FLAC_FILES))
-COVER      := mp3/cover.jpeg
-
-ALBUM_ARTIST := $(shell metaflac --show-tag=ARTIST \
-                  "$(firstword $(FLAC_FILES))" |sed 's/.*=//g')
-ALBUM_TITLE  := $(shell metaflac --show-tag=ALBUM \
-                  "$(firstword $(FLAC_FILES))" |sed 's/.*=//g')
-
-rgain     := mp3/.replaygain
-
 .PHONY: all
-all: $(MP3_FILES) $(COVER) $(rgain)
+all: $(mp3_files) $(cover_file) $(replaygain)
 
 mp3/%.mp3: %.flac | mp3
 	flac -s -d --stdout "$<" | lame --quiet \
-	  --ta "$(ALBUM_ARTIST)" \
-	  --tl "$(ALBUM_TITLE)" \
+	  --ta "$(album_artist)" \
+	  --tl "$(album_title)" \
 	  --tt "$(shell metaflac --show-tag=TITLE "$<" |sed 's/.*=//g')" \
 	  --ty "$(shell metaflac --show-tag=DATE "$<" |sed 's/.*=//g')" \
 	  --tc "$(shell metaflac --show-tag=COMMENT "$<" |sed 's/.*=//g')" \
@@ -35,16 +41,16 @@ mp3/%.mp3: %.flac | mp3
 	  --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
 	  - "$@"
 
-$(COVER): | mp3
+$(cover_file): $(mp3_files) | mp3
 	glyrc cover \
-	  --artist "$(ALBUM_ARTIST)" \
-	  --album "$(ALBUM_TITLE)" \
+	  --artist "$(album_artist)" \
+	  --album "$(album_title)" \
 	  --write "mp3/cover.:format:" \
 	  --formats "jpeg" 2>/dev/null
 
-$(rgain): $(MP3_FILES)
-	mp3gain -r -c mp3/*.mp3 >/dev/null
-	touch mp3/.replaygain
+$(replaygain): $(mp3_files)
+	mp3gain -r -c $< >/dev/null
+	touch $@
 
 mp3:
-	mkdir mp3
+	mkdir $@
