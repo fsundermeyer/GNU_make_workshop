@@ -15,8 +15,8 @@ COVER_NAME := cover
 
 flac_files := $(wildcard $(FLAC_DIR)/*.flac)
 mp3_files  := $(patsubst flac/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
-cover_file := mp3/$(COVER_NAME).jpeg
-replaygain := mp3/.replaygain
+cover_file := $(MP3_DIR)/$(COVER_NAME).jpeg
+replaygain := $(MP3_DIR)/.replaygain
 
 album_artist := $(shell metaflac --show-tag=ARTIST \
                   "$(firstword $(flac_files))" |sed 's/.*=//g')
@@ -30,7 +30,7 @@ vpath %.flac flac
 .PHONY: all
 all: $(mp3_files) $(cover_file) $(replaygain)
 
-mp3/%.mp3: %.flac | mp3
+mp3/%.mp3: %.flac | $(MP3_DIR)
 	flac -s -d --stdout "$<" | lame --quiet \
 	  --ta "$(album_artist)" \
 	  --tl "$(album_title)" \
@@ -41,16 +41,16 @@ mp3/%.mp3: %.flac | mp3
 	  --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
 	  - "$@"
 
-$(cover_file): $(mp3_files) | mp3
+$(cover_file): $(mp3_files) | $(MP3_DIR)
 	glyrc cover \
 	  --artist "$(album_artist)" \
 	  --album "$(album_title)" \
-	  --write "mp3/cover.:format:" \
+	  --write "$(MP3_DIR)/cover.:format:" \
 	  --formats "jpeg" 2>/dev/null
 
 $(replaygain): $(mp3_files)
-	mp3gain -r -c $< >/dev/null
+	mp3gain -c -q -s i $< >/dev/null
 	touch $@
 
-mp3:
+$(MP3_DIR):
 	mkdir $@

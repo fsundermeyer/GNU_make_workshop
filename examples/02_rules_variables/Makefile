@@ -38,7 +38,7 @@ $(COVER): $(mp3_file) | mp3
 	  --formats "jpeg" 2>/dev/null
 
 $(replaygain): $(mp3_file)
-	mp3gain -r -c $<
+	mp3gain -c -q -s i $<
 	touch $@
 
 mp3:
