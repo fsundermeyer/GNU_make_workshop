@@ -28,13 +28,13 @@ album_title  := $(shell metaflac --show-tag=ALBUM \
                   "$(firstword $(flac_files))" |sed 's/.*=//g')
 
 ifeq "$(FORMAT)" "mp3"
-  lossy_files := $(patsubst flac/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
+  lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
   lossy_dir   := $(MP3_DIR)
   cover_file  := $(MP3_DIR)/$(COVER_NAME).jpeg
   replaygain  := $(MP3_DIR)/.replaygain
   gain_cmd    := mp3gain -c -q -s i
 else
-  lossy_files := $(patsubst flac/%.flac,$(OGG_DIR)/%.ogg,$(flac_files))
+  lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(OGG_DIR)/%.ogg,$(flac_files))
   lossy_dir   := $(OGG_DIR)
   cover_file  := $(OGG_DIR)/$(COVER_NAME).jpeg
   replaygain  := $(OGG_DIR)/.replaygain
