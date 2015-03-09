@@ -64,16 +64,16 @@ endef
 define cover
   @if [ -f $(subst $(1),$(FLAC_DIR),$@) ]; then \
     echo "Copying cover"; \
-    cp $(subst $(1),$(FLAC_DIR),$@) $(dir $<); \
+    cp $(subst $(1),$(FLAC_DIR),$@) $@; \
   elif [ -f $(dir $(subst $(1),$(FLAC_DIR),$@))$(COVER_NAME).jpg ]; then \
     echo "Copying cover"; \
-    cp $(dir $(subst $(1),$(FLAC_DIR),$@))$(COVER_NAME).jpg $(dir $<)$(COVER_NAME).jpeg; \
+    cp $(dir $(subst $(1),$(FLAC_DIR),$@))$(COVER_NAME).jpg $@; \
   else \
     echo "Fetching cover"; \
     glyrc cover \
       --artist "$(shell metaflac --show-tag=ARTIST "$(subst $(1),$(FLAC_DIR),$<)" |sed 's/.*=//g')" \
       --album "$(shell metaflac --show-tag=ALBUM "$(subst $(1),$(FLAC_DIR),$<)" |sed 's/.*=//g')" \
-      --write "$(dir $<)cover.:format:" \
+      --write "$(dir $@)cover.:format:" \
       --formats "jpeg" 2>/dev/null; \
   fi
 endef
@@ -100,8 +100,8 @@ $(OGG_DIR)/%/.replaygain: $(OGG_DIR)/%/*.ogg
 	@vorbisgain -s -q $(ALBUM_GAIN) $(dir $@)*.ogg >/dev/null
 	@touch $@
 
-$(MP3_DIR)/%/$(COVER_NAME).jpeg: $(MP3_DIR)/%/*.mp3
+$(MP3_DIR)/%/$(COVER_NAME).jpeg: $(FLAC_DIR)/%/*.flac
 	$(call cover,$(MP3_DIR))
 
-$(OGG_DIR)/%/$(COVER_NAME).jpeg: $(OGG_DIR)/%/*.ogg
+$(OGG_DIR)/%/$(COVER_NAME).jpeg: $(FLAC_DIR)/%/*.flac
 	$(call cover,$(OGG_DIR))

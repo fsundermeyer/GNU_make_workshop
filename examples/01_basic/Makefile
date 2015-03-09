@@ -19,7 +19,7 @@ mp3/song.mp3: song.flac | mp3
 	  --tg "Alternative" \
 	  - "mp3/song.mp3"
 
-mp3/cover.jpeg: | mp3
+mp3/cover.jpeg: song.flac | mp3
 	glyrc cover \
 	  --artist "Nine Inch Nails" \
 	  --album "The Slip" \

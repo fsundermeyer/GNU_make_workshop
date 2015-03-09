@@ -81,7 +81,7 @@ mp3/%.mp3: %.flac | $(lossy_dir)
 ogg/%.ogg: %.flac | $(lossy_dir)
 	@$(flac2ogg)
 
-$(cover_file): $(lossy_files) | $(lossy_dir)
+$(cover_file): $(flac_files) | $(lossy_dir)
 ifdef flac_cover
 	@echo "Copying cover"
 	@cp $(flac_cover) $@

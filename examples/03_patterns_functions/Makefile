@@ -41,7 +41,7 @@ mp3/%.mp3: %.flac | $(MP3_DIR)
 	  --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
 	  - "$@"
 
-$(cover_file): $(mp3_files) | $(MP3_DIR)
+$(cover_file): $(flac_files) | $(MP3_DIR)
 	glyrc cover \
 	  --artist "$(album_artist)" \
 	  --album "$(album_title)" \

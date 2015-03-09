@@ -30,7 +30,7 @@ $(mp3_file): $(FLAC_FILE) | mp3
 	  --tg "Alternative" \
 	  - "$@"
 
-$(COVER): $(mp3_file) | mp3
+$(COVER): $(FLAC_FILE) | mp3
 	glyrc cover \
 	  --artist "Nine Inch Nails" \
 	  --album "The Slip" \
