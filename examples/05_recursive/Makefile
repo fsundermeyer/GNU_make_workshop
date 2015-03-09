@@ -80,9 +80,11 @@ endef
 
 #-------------------------------------
 
-.PHONY: all
+.PHONY: all clean
 
 all: $(lossy_files) $(replaygains) $(cover_files)
+clean:
+	rm -rf $(sort $(dir $(patsubst %/,%,$(lossy_dirs))))
 
 $(MP3_DIR)/%.mp3: $(FLAC_DIR)/%.flac
 	@$(flac2mp3)
