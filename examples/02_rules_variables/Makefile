@@ -7,19 +7,19 @@
 # with all three rule types, variables, and vpath
 #
 
-# VPATH = flac
-vpath %.flac flac
+FLAC_DIR := flac
+MP3_DIR  := mp3
+COVER    := cover
 
-FLAC_FILE := song.flac
-COVER     := mp3/cover.jpeg
-
-mp3_file   := mp3/song.mp3
-replaygain := mp3/.replaygain
+flac_file  := $(FLAC_DIR)/song.flac
+cover_file := $(MP3_DIR)/$(COVER).jpeg
+mp3_file   := $(MP3_DIR)/song.mp3
+replaygain := $(MP3_DIR)/.replaygain
 
 .PHONY: all
-all: $(mp3_file) $(COVER) $(replaygain)
+all: $(mp3_file) $(cover_file) $(replaygain)
 
-$(mp3_file): $(FLAC_FILE) | mp3
+$(mp3_file): $(flac_file) | $(MP3_DIR)
 	flac -s -d --stdout "$<" | lame --quiet \
 	  --ta "Nine Inch Nails" \
 	  --tl "The Slip" \
@@ -30,16 +30,16 @@ $(mp3_file): $(FLAC_FILE) | mp3
 	  --tg "Alternative" \
 	  - "$@"
 
-$(COVER): $(FLAC_FILE) | mp3
+$(cover_file): $(flac_file) | $(MP3_DIR)
 	glyrc cover \
 	  --artist "Nine Inch Nails" \
 	  --album "The Slip" \
-	  --write "mp3/cover.:format:" \
+	  --write "$(MP3_DIR)/$(COVER).:format:" \
 	  --formats "jpeg" 2>/dev/null
 
 $(replaygain): $(mp3_file)
 	mp3gain -c -q -s i $<
 	touch $@
 
-mp3:
+$(MP3_DIR):
 	mkdir $@

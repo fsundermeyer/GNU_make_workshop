@@ -6,6 +6,8 @@
 # Simple conversion of a flac file to mp3
 # Optimized (avoiding unnecessary rebuilds)
 
+.PHONY: all
+
 all: mp3/song.mp3 mp3/cover.jpeg
 
 mp3/song.mp3: song.flac | mp3

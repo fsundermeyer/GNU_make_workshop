@@ -11,10 +11,10 @@
 
 FLAC_DIR   := flac
 MP3_DIR    := mp3
-COVER_NAME := cover
+COVER      := cover
 
 flac_files := $(wildcard $(FLAC_DIR)/*.flac)
-mp3_files  := $(patsubst flac/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
+mp3_files  := $(patsubst $(FLAC_DIR)/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
 cover_file := $(MP3_DIR)/$(COVER_NAME).jpeg
 replaygain := $(MP3_DIR)/.replaygain
 
@@ -30,7 +30,7 @@ vpath %.flac flac
 .PHONY: all
 all: $(mp3_files) $(cover_file) $(replaygain)
 
-mp3/%.mp3: %.flac | $(MP3_DIR)
+$(MP3_DIR)/%.mp3: %.flac | $(MP3_DIR)
 	flac -s -d --stdout "$<" | lame --quiet \
 	  --ta "$(album_artist)" \
 	  --tl "$(album_title)" \
@@ -45,7 +45,7 @@ $(cover_file): $(flac_files) | $(MP3_DIR)
 	glyrc cover \
 	  --artist "$(album_artist)" \
 	  --album "$(album_title)" \
-	  --write "$(MP3_DIR)/cover.:format:" \
+	  --write "$(MP3_DIR)/$(COVER).:format:" \
 	  --formats "jpeg" 2>/dev/null
 
 $(replaygain): $(mp3_files)
