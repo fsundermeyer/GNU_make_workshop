@@ -22,4 +22,4 @@ four lessons:
  - the command-line modifier "@"
  - conditionals
 
-Each lesson ends with an exercise that requires to utilize what was learned in the previous lessen. During the exercises a make file, that converts FLAC files to ogg or mp3, adds replay gain and downloads a cover file, is developed. Starting with a very minimalistic make file, it is continuously upgraded with each exercise. The final result can be used to automatically convert a large flac collection to mp3 or ogg.
+Each lesson ends with an exercise that requires to utilize what was learned in the previous lesson. During the exercises a make file, that converts FLAC files to ogg or mp3, adds replay gain and downloads a cover file, is developed. Starting with a very minimalistic make file, it is continuously upgraded with each exercise. The final result can be used to automatically convert a large flac collection to mp3 or ogg.
