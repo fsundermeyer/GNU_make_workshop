@@ -1,6 +1,11 @@
 #
 # GNU make training 03.2015
-# Frank Sundermeyer 08.03.2015
+# Frank Sundermeyer 12.03.2015
+#
+# With contributions from:
+# - Manuel Schnitzer (FORMAT check)
+# - Thomas Hutterer (Statistics)
+# - Joshua Schmid (Pattern rule for flac conversion)
 #
 # Example 05:
 # Recursive conversion of a directory containing an arbitrary number of flac
@@ -8,102 +13,110 @@
 # structure by adjusting $(flac_files)
 #
 
+# Statistics
+start_time := $(shell date +%s)
+
 #-------------------------------------
 
 FORMAT      := mp3
-GAIN_METHOD := album 
-
-FLAC_DIR   := flac
-MP3_DIR    := mp3
-OGG_DIR    := ogg
-COVER_NAME := cover
-LAME_OPTS  := --preset extreme --pad-id3v2 --quiet
-OGG_OPTS   := -Q -q 7
-
-flac_files := $(wildcard $(FLAC_DIR)/**/**/*.flac)
-
-ifeq "$(FORMAT)" "mp3"
-  lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(MP3_DIR)/%.mp3,$(flac_files))
-else
-  lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(OGG_DIR)/%.ogg,$(flac_files))
+# Check if FORMAT contains a valid value
+ifneq "$(FORMAT)" "$(filter $(FORMAT),mp3 ogg)"
+  $(error Wrong FORMAT, needs to be "mp3" or "ogg")
 endif
 
-lossy_dirs  := $(sort $(dir $(lossy_files)))
-cover_files := $(addsuffix $(COVER_NAME).jpeg,$(lossy_dirs))
-replaygains  := $(addsuffix .replaygain,$(lossy_dirs))
+# Defaults
+GAIN_METHOD := album 
+FLAC_DIR    := flac
+OUT_DIR    := $(FORMAT)
+COVER_NAME  := cover
+LAME_OPTS   := --preset extreme --pad-id3v2 --quiet
+OGG_OPTS    := -Q -q 7
 
+# File lists
+flac_files  := $(wildcard $(FLAC_DIR)/**/**/*.flac)
+lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(OUT_DIR)/%.$(FORMAT),$(flac_files))
+lossy_dirs  := $(sort $(dir $(lossy_files)))
+cover_fname := $(COVER_NAME).jpeg
+cover_files := $(addsuffix $(cover_fname),$(lossy_dirs))
+replaygains := $(addsuffix .replaygain,$(lossy_dirs))
+
+# Programs
+FFMPEG     := /usr/bin/ffmpeg
+OGGENC     := /usr/bin/oggenc
+MP3GAIN    := /usr/bin/mp3gain
+VORBISGAIN := /usr/bin/vorbisgain
+GLYRC      := /usr/bin/glyrc
+
+# Statistics
+file_count := $(words $(lossy_files))
+
+# gain command 
+ifeq "$(FORMAT)" "mp3"
+  gain_cmd    := $(MP3GAIN) -c -q
+else
+  gain_cmd    := $(VORBISGAIN) -s -q 
+endif
 ifeq "$(strip $(GAIN_METHOD))" "album"
   ALBUM_GAIN := -a
 else
   GAIN_METHOD := track
 endif
 
+
+
 #-------------------------------------
 
-define flac2mp3
-  echo "mp3 conversion of $<"
-  [[ -d $(dir $@) ]] || mkdir -p $(dir $@)
-  flac -s -d --stdout "$<" | lame $(LAME_OPTS) \
-    --ta "$(shell metaflac --show-tag=ARTIST "$<" |sed 's/.*=//g')" \
-    --tl "$(shell metaflac --show-tag=ALBUM "$<" |sed 's/.*=//g')" \
-    --tt "$(shell metaflac --show-tag=TITLE "$<" |sed 's/.*=//g')" \
-    --ty "$(shell metaflac --show-tag=DATE "$<" |sed 's/.*=//g')" \
-    --tc "$(shell metaflac --show-tag=COMMENT "$<" |sed 's/.*=//g')" \
-    --tg "$(shell metaflac --show-tag=GENRE "$<" |sed 's/.*=//g')" \
-    --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
-    - "$@"
-endef
-
-define flac2ogg
-  echo "ogg conversion of $<"
-  [[ -d $(dir $@) ]] || mkdir -p $(dir $@)
-  oggenc $(OGG_OPTS) -o $@ $<
-endef
-
-# Parameter 1: MP3_DIR / OGG_DIR
-define cover
-  @if [ -f $(subst $(1),$(FLAC_DIR),$@) ]; then \
-    echo "Copying cover"; \
-    cp $(subst $(1),$(FLAC_DIR),$@) $@; \
-  elif [ -f $(dir $(subst $(1),$(FLAC_DIR),$@))$(COVER_NAME).jpg ]; then \
-    echo "Copying cover"; \
-    cp $(dir $(subst $(1),$(FLAC_DIR),$@))$(COVER_NAME).jpg $@; \
-  else \
-    echo "Fetching cover"; \
-    glyrc cover \
-      --artist "$(shell metaflac --show-tag=ARTIST "$(subst $(1),$(FLAC_DIR),$<)" |sed 's/.*=//g')" \
-      --album "$(shell metaflac --show-tag=ALBUM "$(subst $(1),$(FLAC_DIR),$<)" |sed 's/.*=//g')" \
-      --write "$(dir $@)cover.:format:" \
-      --formats "jpeg" 2>/dev/null; \
-  fi
-endef
+ifeq "$(FORMAT)" "mp3"
+  define converter
+    echo "mp3 conversion of $<"
+    [[ -d $(dir $@) ]] || mkdir -p $(dir $@)
+    $(FFMPEG) -i $< -qscale:a 0 -v quiet \
+      -metadata REPLAYGAIN_REFERENCE_LOUDNESS=""\
+      -metadata REPLAYGAIN_TRACK_GAIN="" \
+      -metadata REPLAYGAIN_TRACK_PEAK="" \
+      -metadata REPLAYGAIN_ALBUM_GAIN="" \
+      -metadata REPLAYGAIN_ALBUM_PEAK="" \
+      "$@"
+  endef
+else
+  define converter
+    echo "ogg conversion of $<"
+    [[ -d $(dir $@) ]] || mkdir -p $(dir $@)
+    $(OGGENC) $(OGG_OPTS) -o "$@" $<
+  endef
+endif
 
 #-------------------------------------
 
 .PHONY: all clean
 
 all: $(lossy_files) $(replaygains) $(cover_files)
+	@echo "--------------------"
+	@echo "Converted $(file_count) flac files to $(FORMAT) in $$(($$(date +%s)-$(start_time))) seconds."
+
 clean:
 	rm -rf $(sort $(dir $(patsubst %/,%,$(lossy_dirs))))
 
-$(MP3_DIR)/%.mp3: $(FLAC_DIR)/%.flac
-	@$(flac2mp3)
+$(OUT_DIR)/%.$(FORMAT): $(FLAC_DIR)/%.flac
+	@$(converter)
 
-$(OGG_DIR)/%.ogg:$(FLAC_DIR)/%.flac
-	@$(flac2ogg)
-
-$(MP3_DIR)/%/.replaygain: $(MP3_DIR)/%/*.mp3
-	@echo "Applying $(GAIN_METHOD) replay gain to $(dir $@)"
-	@mp3gain -c -q -s i $(ALBUM_GAIN) $(dir $@)*.mp3 >/dev/null
+$(OUT_DIR)/%/.replaygain: $(OUT_DIR)/%/*.$(FORMAT)
+	@echo "$(strip Applying $(GAIN_METHOD) replay gain to $(dir $@))"
+	@$(gain_cmd) $^ 2>&1 >/dev/null
 	@touch $@
 
-$(OGG_DIR)/%/.replaygain: $(OGG_DIR)/%/*.ogg
-	@echo "Applying $(GAIN_METHOD) replay gain to $(dir $@)"
-	@vorbisgain -s -q $(ALBUM_GAIN) $(dir $@)*.ogg >/dev/null
-	@touch $@
-
-$(MP3_DIR)/%/$(COVER_NAME).jpeg: $(FLAC_DIR)/%/*.flac
-	$(call cover,$(MP3_DIR))
-
-$(OGG_DIR)/%/$(COVER_NAME).jpeg: $(FLAC_DIR)/%/*.flac
-	$(call cover,$(OGG_DIR))
+$(OUT_DIR)/%/$(cover_fname): $(FLAC_DIR)/%/*.flac
+	  @if [ -f $(subst $(OUT_DIR),$(FLAC_DIR),$@) ]; then \
+	    echo "Copying cover to $@"; \
+	    cp $(subst $(OUT_DIR),$(FLAC_DIR),$@) $@; \
+	  elif [ -f $(dir $(subst $(OUT_DIR),$(FLAC_DIR),$@))$(COVER_NAME).jpg ]; then \
+	    echo "Copying cover to $@"; \
+	    cp $(dir $(subst $(OUT_DIR),$(FLAC_DIR),$@))$(COVER_NAME).jpg $@; \
+	  else \
+	    echo "Fetching cover to $@"; \
+	    $(GLYRC) cover \
+	      --artist "$(shell metaflac --show-tag=ARTIST "$(firstword $<)" |sed 's/.*=//g')" \
+	      --album "$(shell metaflac --show-tag=ALBUM "$(firstword $<)" |sed 's/.*=//g')" \
+	      --write "$(dir $@)cover.:format:" \
+	      --formats "jpeg" 2>/dev/null; \
+	  fi

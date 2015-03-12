@@ -25,12 +25,11 @@ album_title  := $(shell metaflac --show-tag=ALBUM \
 
 #-------------------------------------
 
-vpath %.flac flac
 
 .PHONY: all
 all: $(mp3_files) $(cover_file) $(replaygain)
 
-$(MP3_DIR)/%.mp3: %.flac | $(MP3_DIR)
+$(MP3_DIR)/%.mp3: $(FLAC_DIR)/%.flac | $(MP3_DIR)
 	flac -s -d --stdout "$<" | lame --quiet \
 	  --ta "$(album_artist)" \
 	  --tl "$(album_title)" \
@@ -49,7 +48,7 @@ $(cover_file): $(flac_files) | $(MP3_DIR)
 	  --formats "jpeg" 2>/dev/null
 
 $(replaygain): $(mp3_files)
-	mp3gain -c -q -s i $< >/dev/null
+	mp3gain -c -q -s i $^ >/dev/null
 	touch $@
 
 $(MP3_DIR):
