@@ -9,7 +9,7 @@ four lessons:
  - Dependencies
 2. Rules and Variables
  - rules: explicit rules, empty rules, phony rules
- - shel syntax
+ - shell syntax
  - variables: naming, assignment, expansion, origin
  - target-specific variables, automatic variables
  - vPATH and vpath
