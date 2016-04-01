@@ -1,5 +1,5 @@
 #
-# GNU make training 03.2015
+# GNU make workshop
 # Frank Sundermeyer 12.03.2015
 #
 # With contributions from:

@@ -1,5 +1,5 @@
 #
-# GNU make training 03.2015
+# GNU make workshop
 # Frank Sundermeyer 27.02.2015
 #
 # Example 01:
