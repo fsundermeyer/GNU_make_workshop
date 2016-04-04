@@ -1,0 +1,17 @@
+Getting a Tag From a Flac File
+-------------------------------
+
+metaflac --show-tag=<TAG> "<FILE>"
+
+<TAG> can be one of these (among others):
+ARTIST
+ALBUM
+TITLE
+DATE
+COMMENT
+GENRE
+TRACKNUMBER
+
+Clean up output:
+
+metaflac --show-tag=<TAG> "<FILE>" | sed 's/.*=//g'

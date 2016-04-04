@@ -1,0 +1,17 @@
+Suggested Lame Command
+-----------------------
+
+lame --quiet --preset extreme --id3v2-only --pad-id3v2 \
+  [tag setting options] "<FLACFILE>"
+
+Suggested OGG Command
+---------------------
+
+oggenc -Q -q 7 -o "<OGGFILE>" "<FLACFILE>"
+
+Replaygain for ogg files
+------------------------
+
+vorbisgain -s -q [-a] "<OGGFILE>"
+(-a calculates albumgain)
+

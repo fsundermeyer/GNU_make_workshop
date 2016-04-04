@@ -1,0 +1,10 @@
+Flac to mp3:
+------------
+
+flac -d --stdout "<FLAC FILE>" | lame [options] - "<RESULT>
+
+Fetch cover with glyrc:
+-----------------------
+
+glyrc cover -a "ARTIST" -b "ALBUM" -w "<DIR>/<BASENAME>.:format:"\
+  -F "<FORMAT>"

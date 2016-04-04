@@ -1,0 +1,9 @@
+Alternative MP3 command:
+------------------------
+
+ffmpeg -i <FLACFILE> -qscale:a 0 -v quiet \
+ -metadata REPLAYGAIN_REFERENCE_LOUDNESS=""\
+ -metadata REPLAYGAIN_TRACK_GAIN="" \
+ -metadata REPLAYGAIN_TRACK_PEAK="" \
+ -metadata REPLAYGAIN_ALBUM_GAIN="" \
+ -metadata REPLAYGAIN_ALBUM_PEAK="" <MP3FILE>

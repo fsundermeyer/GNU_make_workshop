@@ -1,0 +1,4 @@
+Replaygain with mp3gain
+-----------------------
+
+mp3gain -c -q -s i <FILE>
