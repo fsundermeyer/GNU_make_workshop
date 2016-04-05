@@ -117,4 +117,4 @@ $(replaygain): $(lossy_files)
 	@touch $@
 
 $(OUT_DIR):
-	@mkdir $@
+	@mkdir -p $@

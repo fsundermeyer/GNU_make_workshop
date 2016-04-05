@@ -29,4 +29,4 @@ mp3/cover.jpeg: song.flac | mp3
 	  --formats "jpeg" 2>/dev/null
 
 mp3:
-	mkdir mp3
+	mkdir -p mp3

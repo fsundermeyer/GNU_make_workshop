@@ -42,4 +42,4 @@ $(replaygain): $(mp3_file)
 	touch $@
 
 $(MP3_DIR):
-	mkdir $@
+	mkdir -p $@
