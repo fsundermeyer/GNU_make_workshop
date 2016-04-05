@@ -1,7 +1,7 @@
 Flac to mp3:
 ------------
 
-flac -d --stdout "<FLAC FILE>" | lame [options] - "<RESULT>
+flac -d --stdout "<FLAC FILE>" | lame [options] - "<RESULT>"
 
 Fetch cover with glyrc:
 -----------------------
