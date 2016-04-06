@@ -13,6 +13,23 @@
 # structure by adjusting $(flac_files)
 #
 
+#
+#  http://blog.jgc.org/2011/07/gnu-make-recursive-wildcard-function.html
+#  rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) \
+#	$(filter $(subst *,%,$2),$d))
+#
+# Usage is as follows. First, all C files in the current directory (or below).
+# $(call rwildcard,,*.c)
+# Then all C files in /tmp:
+# $(call rwildcard,/tmp/,*.c)
+# Multiple patterns can be used. Here are all C and H files:
+# $(call rwildcard,/tmp/,*.c *.h)
+
+
+# use bash with extended globbing turned on
+# Needed ??
+#SHELL=/bin/bash -O extglob -c
+
 # Statistics
 start_time := $(shell date +%s)
 
@@ -33,6 +50,9 @@ LAME_OPTS   := --preset extreme --pad-id3v2 --quiet
 OGG_OPTS    := -Q -q 7
 
 # File lists
+
+# flac_files := $(shell find flac/ -type f -name '*.flac')
+
 flac_files  := $(wildcard $(FLAC_DIR)/**/**/*.flac)
 lossy_files := $(patsubst $(FLAC_DIR)/%.flac,$(OUT_DIR)/%.$(FORMAT),$(flac_files))
 lossy_dirs  := $(sort $(dir $(lossy_files)))
