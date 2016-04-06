@@ -30,15 +30,7 @@ album_title  := $(shell metaflac --show-tag=ALBUM \
 all: $(mp3_files) $(cover_file) $(replaygain)
 
 $(MP3_DIR)/%.mp3: $(FLAC_DIR)/%.flac | $(MP3_DIR)
-	flac -s -d --stdout "$<" | lame --quiet \
-	  --ta "$(album_artist)" \
-	  --tl "$(album_title)" \
-	  --tt "$(shell metaflac --show-tag=TITLE "$<" |sed 's/.*=//g')" \
-	  --ty "$(shell metaflac --show-tag=DATE "$<" |sed 's/.*=//g')" \
-	  --tc "$(shell metaflac --show-tag=COMMENT "$<" |sed 's/.*=//g')" \
-	  --tg "$(shell metaflac --show-tag=GENRE "$<" |sed 's/.*=//g')" \
-	  --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
-	  - "$@"
+	ffmpeg -i $< -qscale:a 0 -v quiet "$@"
 
 $(cover_file): $(flac_files) | $(MP3_DIR)
 	glyrc cover \

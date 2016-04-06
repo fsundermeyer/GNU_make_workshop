@@ -103,7 +103,8 @@ endif
 .PHONY: all
 
 all: $(lossy_files) $(cover_file) $(replaygain)
-	@echo -e "--------------------\nConverted $(file_count) flac files to $(FORMAT) in $$(($$(date +%s)-$(start_time))) seconds."
+	@echo -e "--------------------\nConverted $(file_count) flac files to $(FORMAT)\
+	 in $$(($$(date +%s)-$(start_time))) seconds."
 
 $(OUT_DIR)/%.$(FORMAT): $(FLAC_DIR)/%.flac | $(OUT_DIR)
 	@$(converter)
