@@ -1,8 +1,7 @@
-Suggested Lame Command
------------------------
+Alternative MP3 command (also converts tags):
+---------------------------------------------
 
-lame --quiet --preset extreme --id3v2-only --pad-id3v2 \
-  [tag setting options] "<FLACFILE>"
+ffmpeg -i "<FLACFILE>" -qscale:a 0 -v quiet "<MP3FILE>"
 
 Suggested OGG Command
 ---------------------
@@ -14,4 +13,3 @@ Replaygain for ogg files
 
 vorbisgain -s -q [-a] "<OGGFILE>"
 (-a calculates albumgain)
-

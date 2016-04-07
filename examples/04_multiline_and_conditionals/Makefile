@@ -45,51 +45,44 @@ album_title  := $(shell metaflac --show-tag=ALBUM \
 
 # Statistics
 start_time := $(shell date +%s)
-file_count := $(words $(lossy_files))
+
+#-------------------------------------
+
+ifeq "$(FORMAT)" "mp3"
+  gain_cmd := mp3gain -c -q -s i
+  define converter
+    $(FFMPEG) -i $< -qscale:a 0 -v quiet \
+      -metadata REPLAYGAIN_REFERENCE_LOUDNESS=""\
+      -metadata REPLAYGAIN_TRACK_GAIN="" \
+      -metadata REPLAYGAIN_TRACK_PEAK="" \
+      -metadata REPLAYGAIN_ALBUM_GAIN="" \
+      -metadata REPLAYGAIN_ALBUM_PEAK="" \
+      "$@"
+  endef
+else
+  gain_cmd  := vorbisgain -s -q
+  converter = oggenc $(OGG_OPTS) -o $@ $<
+endif
 
 # gain command 
-ifeq "$(FORMAT)" "mp3"
-  gain_cmd    := mp3gain -c -q -s i
-else
-  gain_cmd    := vorbisgain -s -q 
-endif
+#
 ifeq "$(GAIN_METHOD)" "album"
   gain_cmd += -a
 else
   GAIN_METHOD := track
 endif
 
-#-------------------------------------
-
-ifeq "$(FORMAT)" "mp3"
-  define converter
-    echo "mp3 conversion of $<"
-    flac -s -d --stdout "$<" | lame --quiet $(LAME_OPTS) \
-      --ta "$(album_artist)" \
-      --tl "$(album_title)" \
-      --tt "$(shell metaflac --show-tag=TITLE "$<" |sed 's/.*=//g')" \
-      --ty "$(shell metaflac --show-tag=DATE "$<" |sed 's/.*=//g')" \
-      --tc "$(shell metaflac --show-tag=COMMENT "$<" |sed 's/.*=//g')" \
-      --tg "$(shell metaflac --show-tag=GENRE "$<" |sed 's/.*=//g')" \
-      --tn "$(shell metaflac --show-tag=TRACKNUMBER "$<" |sed 's/.*=//g')" \
-      - "$@"
-  endef
-else
-  define converter
-    echo "ogg conversion of $<"
-    oggenc $(OGG_OPTS) -o $@ $<
-  endef
-endif
-
+# get cover
+#
 ifdef flac_cover
   define get_cover
-	@echo "Copying cover"
-	@cp $(flac_cover) $@
+	echo "Copying cover"
+	cp $(flac_cover) $@
   endef
 else
   define get_cover
-	@echo "Fetching cover"
-	@glyrc cover \
+	echo "Fetching cover"
+	glyrc cover \
 	  --artist "$(album_artist)" \
 	  --album "$(album_title)" \
 	  --write "$(OUT_DIR)/cover.:format:" \
@@ -97,16 +90,15 @@ else
   endef
 endif
 
-
 #-------------------------------------
 
 .PHONY: all
 
 all: $(lossy_files) $(cover_file) $(replaygain)
-	@echo -e "--------------------\nConverted $(file_count) flac files to $(FORMAT)\
-	 in $$(($$(date +%s)-$(start_time))) seconds."
+	@echo -e "--------------------\nConverted flac files to $(FORMAT) in $$(($$(date +%s)-$(start_time))) seconds."
 
 $(OUT_DIR)/%.$(FORMAT): $(FLAC_DIR)/%.flac | $(OUT_DIR)
+	@echo "$(FORMAT) conversion of $<"
 	@$(converter)
 
 $(cover_file): $(flac_files) | $(OUT_DIR)
