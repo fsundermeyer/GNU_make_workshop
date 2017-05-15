@@ -1,17 +1,21 @@
 Getting a Tag From a Flac File
 -------------------------------
 
-metaflac --show-tag=<TAG> "<FILE>"
+New Command for mp3 conversion:
 
-<TAG> can be one of these (among others):
-ARTIST
-ALBUM
-TITLE
-DATE
-COMMENT
-GENRE
-TRACKNUMBER
+ffmpeg -i "<FLAC>" -qscale:a 0 -v quiet "<MP3>"
 
-Clean up output:
+# metaflac --show-tag=<TAG> "<FILE>"
 
-metaflac --show-tag=<TAG> "<FILE>" | sed 's/.*=//g'
+# <TAG> can be one of these (among others):
+# ARTIST
+# ALBUM
+# TITLE
+# DATE
+# COMMENT
+# GENRE
+# TRACKNUMBER
+
+# Clean up output:
+
+# metaflac --show-tag=<TAG> "<FILE>" | sed 's/.*=//g'
