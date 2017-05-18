@@ -52,7 +52,7 @@ OGG_OPTS    := -Q -q 7
 # Alternatives
 #
 # find:
-# flac_files  := $(shell find -L $(FLAC_DIR) -type f -name '*.flac')
+# flac_files  := $(shell find -L $(FLAC_DIR) -name '*.flac')
 #
 # May need bash and extended globbing: SHELL=/bin/bash -O extglob -c
 # flac_files  := $(wildcard $(FLAC_DIR)/**/**/*.flac)
@@ -118,6 +118,8 @@ $(FORMAT)/%.$(FORMAT): flac/%.flac
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	@$(converter)
 
+# Prerequisite definition is questionable
+#
 %/.replaygain: %/*.$(FORMAT)
 	@echo "$(strip Applying $(GAIN_METHOD) replay gain to $(@D))"
 	@$(gain_cmd) $^ 2>&1 >/dev/null
