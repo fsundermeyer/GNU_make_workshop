@@ -8,6 +8,7 @@
 #
 
 #-------------------------------------
+#vpath %.flac flac
 
 FLAC_DIR   := flac
 MP3_DIR    := mp3
