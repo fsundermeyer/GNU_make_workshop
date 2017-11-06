@@ -26,7 +26,6 @@ GAIN_METHOD := album
 FLAC_DIR   := flac
 OUT_DIR    := $(FORMAT)
 COVER_NAME := cover
-LAME_OPTS  := --preset extreme --id3v2-only --pad-id3v2
 OGG_OPTS   := -Q -q 7
 
 # Targets
@@ -51,7 +50,7 @@ start_time := $(shell date +%s)
 ifeq "$(FORMAT)" "mp3"
   gain_cmd := mp3gain -c -q -s i
   define converter
-    $(FFMPEG) -i $< -qscale:a 0 -v quiet \
+    ffmpeg -i "$<" -qscale:a 0 -v quiet \
       -metadata REPLAYGAIN_REFERENCE_LOUDNESS=""\
       -metadata REPLAYGAIN_TRACK_GAIN="" \
       -metadata REPLAYGAIN_TRACK_PEAK="" \
