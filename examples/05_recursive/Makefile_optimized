@@ -14,9 +14,6 @@
 
 .SECONDEXPANSION:
 
-
-SHELL = /bin/bash
-
 # Statistics
 start_time := $(shell date +%s)
 
@@ -46,9 +43,8 @@ endif
 GAIN_METHOD := album 
 FLAC_DIR    := flac
 OUT_DIR     := $(FORMAT)
-COVER_NAME  := albumcover.jpg
-LAME_OPTS   := --preset extreme --pad-id3v2 --quiet
-OGG_OPTS    := -Q -q 7
+COVER_NAME  := albumcover.png
+OGG_OPTS    := -Q -q 10
 
 # File lists
 
@@ -77,12 +73,19 @@ GLYRC      := /usr/bin/glyrc
 # Define mp3/ogg conversion and gain commands
 #
 
+# oggs created with ffmpeg are corrupt
+#
+#$(FFMPEG) -codec:a libmp3lame
+#$(FFMPEG) -codec:a libvorbis
+
 ifeq "$(FORMAT)" "mp3"
   # gain command 
   gain_cmd := $(MP3GAIN) -c -q
-  # mp3 conversion 
+  # mp3 conversion
+  ffmpeg_opts="-codec:a libmp3lame -qscale:a 0"
   define converter
-    $(FFMPEG) -i $< -qscale:a 0 -v quiet \
+    $(FFMPEG) -i $< -codec:a libmp3lame -qscale:a 0 -v quiet \
+      -map_metadata 0 \
       -metadata REPLAYGAIN_REFERENCE_LOUDNESS=""\
       -metadata REPLAYGAIN_TRACK_GAIN="" \
       -metadata REPLAYGAIN_TRACK_PEAK="" \
@@ -110,7 +113,6 @@ endif
 .PHONY: all clean
 
 all: $(lossy_files) $(replaygains) $(cover_files)
-#all: $(replaygains)
 	@echo "--------------------"
 	@echo "Successfully converted flac files to $(FORMAT) in $$(($$(date +%s)-$(start_time))) seconds."
 
@@ -138,22 +140,23 @@ lossy_album_files := $$(patsubst $(FLAC_DIR)/$$(p).flac,$(OUT_DIR)/$$(p).$(FORMA
 
 $(OUT_DIR)/%/.replaygain: $(lossy_album_files)
 	@echo "$(strip Applying $(GAIN_METHOD) replay gain to $(@D))"
-	@$(gain_cmd) $^ 2>&1 >/dev/null
+	@$(gain_cmd) $^ >/dev/null 2>&1
 	@touch $@
 
-$(OUT_DIR)/%/$(COVER_NAME): FLAC_COVER = $(wildcard $(FLAC_DIR)/$*/$(COVER_NAME))
-$(OUT_DIR)/%/$(COVER_NAME): FLAC_FILE = $(firstword $(wildcard $(FLAC_DIR)/$*/*.flac))
-$(OUT_DIR)/%/$(COVER_NAME): $(lossy_album_files)
-	@if test -f "$(strip $(FLAC_COVER))"; then \
-	    echo "Copying _$(FLAC_COVER)_ cover to $@"; \
-	    cp $(FLAC_COVER) $@; \
+flac_cover = $(FLAC_DIR)/$*/$(COVER_NAME)
+flac_file = $(firstword $(wildcard $(FLAC_DIR)/$*/*.flac))
+
+$(OUT_DIR)/%/$(COVER_NAME): | $$(dir $$@)
+	@if test -f "$(strip $(flac_cover))"; then \
+	    echo "Copying $(flac_cover) cover to $@"; \
+	    cp $(flac_cover) $@; \
 	  else \
-	    echo "Fetching _$(FLAC_COVER)_ cover for $@"; \
+	    echo "Fetching $(flac_cover) cover for $@"; \
 	    $(GLYRC) cover \
-	      --artist "$(shell metaflac --show-tag=ARTIST "$(FLAC_FILE)" |sed 's/.*=//g')" \
-	      --album "$(shell metaflac --show-tag=ALBUM "$(FLAC_FILE)" |sed 's/.*=//g')" \
+	      --artist "$(shell metaflac --show-tag=ARTIST "$(flac_file)" |sed 's/.*=//g')" \
+	      --album "$(shell metaflac --show-tag=ALBUM "$(flac_file)" |sed 's/.*=//g')" \
 	      --write "$@" \
-	      --formats "jpeg" 2>/dev/null; \
+	      --formats "png" 2>/dev/null; \
 	  fi
 
 $(lossy_dirs):
